@@ -10,6 +10,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Permisos de los scripts
+        run: |
+          chmod +x scripts/*.sh toolchain/*.sh 2>/dev/null || true
+          find scripts toolchain -type f \( -name '*.sh' -o -path '*/bin/*' \) -exec chmod +x {} +
+
       - name: Liberar disco
         run: |
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL /usr/local/share/boost
@@ -24,7 +29,12 @@ jobs:
           no-n64 no-nds no-psp no-dc no-sega no-arcade no-3ds no-pce
 
       - name: Empaquetar
-        run: sudo -i env EMUSUNI_VERSION=00.99 bash "$GITHUB_WORKSPACE/scripts/package.sh" 00.99
+        run: |
+          # Otro identificador y titulo: se instala al lado del EmuSuNi oficial (solo en esta copia).
+          sed -i 's/TITLE_ID=EMSN00001; TITLE="EmuSuNi"/TITLE_ID=EMSN00099; TITLE="EmuSuNi PS1"/' scripts/package.sh
+          grep -n 'TITLE_ID=' scripts/package.sh
+          grep -q 'TITLE_ID=EMSN00099' scripts/package.sh
+          sudo -i env EMUSUNI_VERSION=00.99 bash "$GITHUB_WORKSPACE/scripts/package.sh" 00.99
 
       - name: Recoger resultados
         if: always()
@@ -40,4 +50,3 @@ jobs:
         with:
           name: emusuni-ps1
           path: salida/
-          

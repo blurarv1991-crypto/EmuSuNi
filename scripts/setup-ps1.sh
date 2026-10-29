@@ -78,6 +78,9 @@ step "DolphinPS4: libc++ 21 and the PS4 runtime"
 checkout https://github.com/iHaiDeeZ/DolphinPS4 "$SRC_ROOT/DolphinPS4" "$DOLPHINPS4_COMMIT"
 cd "$SRC_ROOT/DolphinPS4"
 chmod +x toolchain/*.sh scripts/*.sh 2>/dev/null || true
+# Tambien las herramientas de toolchain/bin (ps4-cc y demas): sin esto, 'Permission denied' (exit 126).
+find toolchain scripts -type f \( -name '*.sh' -o -path '*/bin/*' \) -exec chmod +x {} +
+ls -la toolchain/bin 2>/dev/null || true
 grep -q UHAVE_QSORT_S scripts/build-mesa.sh ||
     sed -i "s/'-D__ORBIS__', '-DPS4',/'-D__ORBIS__', '-DPS4', '-UHAVE_QSORT_S',/" scripts/build-mesa.sh
 PS4_BUILD_ROOT="$BUILD_ROOT" toolchain/build-libcxx.sh

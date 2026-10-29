@@ -46,7 +46,26 @@ if [ ! -d "$OPENORBIS" ]; then
     rm -rf /tmp/openorbis && mkdir -p /tmp/openorbis
     tar xJf /tmp/openorbis.tar.xz -C /tmp/openorbis
     mkdir -p "$(dirname "$OPENORBIS")"
-    mv "$(find /tmp/openorbis -maxdepth 6 -type d -name openorbis | head -1)" "$OPENORBIS"
+    echo "Candidatos 'openorbis' dentro del paquete:"
+    find /tmp/openorbis -maxdepth 6 -type d -name openorbis
+    # La buena es la que contiene ps4vars.sh (no la primera que salga de find).
+    OO_DIR=""
+    while read -r d; do
+        if [ -f "$d/ps4vars.sh" ]; then OO_DIR=$d; break; fi
+    done < <(find /tmp/openorbis -maxdepth 6 -type d -name openorbis)
+    if [ -z "$OO_DIR" ]; then
+        echo "ERROR: no encontre ps4vars.sh en el paquete. Contenido:"
+        find /tmp/openorbis -maxdepth 4 | head -60
+        exit 1
+    fi
+    echo "Usando: $OO_DIR"
+    mv "$OO_DIR" "$OPENORBIS"
+fi
+echo "Contenido de $OPENORBIS:"
+ls "$OPENORBIS"
+if [ ! -f "$OPENORBIS/include/math.h" ]; then
+    echo "AVISO: no existe $OPENORBIS/include/math.h. Donde hay math.h:"
+    find "$OPENORBIS" -name math.h | head
 fi
 if [ ! -e /usr/lib/x86_64-linux-gnu/libssl.so.1.1 ]; then
     pool=http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/
